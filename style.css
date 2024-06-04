@@ -1,0 +1,23 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 10px;
+  }
+  
+  h1 {
+    font-size: 18px;
+  }
+  
+  select {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
+  button {
+    width: 100%;
+    padding: 10px;
+  }
+  
+  #results {
+    margin-top: 10px;
+  }
+  
