@@ -1,14 +1,11 @@
-function displayResults() {
-    const resultsList = document.getElementById('resultsList');
-    const results = JSON.parse(localStorage.getItem('results')) || {};
-  
-    for (const city in results) {
-      const listItem = document.createElement('li');
-      listItem.textContent = `${city}: ${results[city] ? 'Available' : 'Not Available'}`;
-      resultsList.appendChild(listItem);
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'showResults') {
+      const storeList = document.getElementById('storeList');
+      message.results.forEach(store => {
+        const li = document.createElement('li');
+        li.textContent = store;
+        storeList.appendChild(li);
+      });
     }
-  }
-  
-  document.addEventListener('DOMContentLoaded', displayResults);
-
+  });
   

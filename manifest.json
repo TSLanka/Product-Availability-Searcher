@@ -1,32 +1,29 @@
 {
     "manifest_version": 3,
-    "name": "Product Availability Checker",
+    "name": "Croma Store Availability Checker",
     "version": "1.0",
-    "description": "Check product availability at Croma stores.",
+    "description": "Check product availability in different cities for Croma stores",
     "permissions": [
       "activeTab",
-      "storage",
-      "tabs"
+      "storage"
     ],
     "background": {
       "service_worker": "background.js"
     },
-    "action": {
-      "default_popup": "popup.html"
-    },
     "content_scripts": [
       {
         "matches": ["*://www.croma.com/*"],
-        "js": ["content.js"]
+        "js": ["content.js"],
+        "run_at": "document_end"
       }
     ],
-    "web_accessible_resources": [
-      {
-        "resources": ["Croma Store List.csv"],
-        "matches": ["<all_urls>"]
+    "action": {
+      "default_popup": "popup.html",
+      "default_icon": {
+        "16": "images/icon16.png",
+        "48": "images/icon48.png",
+        "128": "images/icon128.png"
       }
-    ]
+    }
   }
-
   
-  // The Icon has been removed please add it later

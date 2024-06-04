@@ -1,15 +1,14 @@
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'displayResults') {
-      const results = JSON.parse(localStorage.getItem('results')) || {};
-      results[message.city] = message.isAvailable;
-      localStorage.setItem('results', JSON.stringify(results));
-  
-      // Open a new tab with the results
-      chrome.tabs.create({ url: chrome.runtime.getURL('results.html') }, function(tab) {
-        chrome.tabs.executeScript(tab.id, {
-          code: 'displayResults();'
-        });
-      });
+chrome.action.onClicked.addListener((tab) => {
+    chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['content.js']
+    });
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "checkAvailability") {
+        // Your background logic to handle availability checking
+        console.log("Background script checking availability...");
+        sendResponse({ success: true });
     }
-  });
-  
+});
