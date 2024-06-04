@@ -10,4 +10,5 @@ function displayResults() {
   }
   
   document.addEventListener('DOMContentLoaded', displayResults);
+
   
