@@ -1,12 +1,22 @@
-console.log("Content script injected");
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'checkAvailability') {
+    const cities = message.cities;
 
-// Example: Log the product title
-const productTitle = document.querySelector('.product-title');
-if (productTitle) {
-  console.log("Product Title:", productTitle.textContent);
-} else {
-  console.log("Product title not found.");
-}
-
-// Send a message to the background script to indicate that the content script has been injected
-chrome.runtime.sendMessage({ message: "Content script injected" });
+    // Logic to check availability for each city using content script injection
+    cities.forEach(city => {
+      // Example: Perform a search or fetch request to Croma's website
+      fetch(`https://www.croma.com/search?q=product&city=${city}`)
+        .then(response => response.text())
+        .then(data => {
+          // Parse and check availability in the returned data
+          const isAvailable = data.includes('In Stock'); // Example check
+          chrome.runtime.sendMessage({
+            action: 'displayResults',
+            city: city,
+            isAvailable: isAvailable
+          });
+        })
+        .catch(error => console.error('Error:', error));
+    });
+  }
+});

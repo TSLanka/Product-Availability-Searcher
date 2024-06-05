@@ -1,85 +1,58 @@
-document.addEventListener('DOMContentLoaded', function () {
-    fetch(chrome.runtime.getURL('Croma Store List.csv'))
-        .then(response => response.text())
-        .then(text => {
-            const data = parseCSV(text);
-            populateStateDropdown(data);
-        });
+document.addEventListener('DOMContentLoaded', function() {
+  const stateSelect = document.querySelector('#stateSelect');
+  const citySelect = document.querySelector('#citySelect');
+  const checkAvailabilityButton = document.querySelector('#checkAvailabilityButton');
 
-    document.getElementById('state-select').addEventListener('change', function () {
-        const selectedState = this.value;
-        fetch(chrome.runtime.getURL('Croma Store List.csv'))
-            .then(response => response.text())
-            .then(text => {
-                const data = parseCSV(text);
-                populateCityDropdown(data, selectedState);
-            });
+  if (!stateSelect || !citySelect || !checkAvailabilityButton) {
+    console.error('Error: Cannot find required elements.');
+    return;
+  }
+
+  let storeData = [];
+
+  function parseCSV(text) {
+    const rows = text.split('\n');
+    return rows.map(row => {
+      const [state, city, pincode, storeName] = row.split(',');
+      return { "State": state, "City": city, "Pincode": pincode, "Store Name": storeName };
     });
+  }
 
-    document.getElementById('check-availability').addEventListener('click', function () {
-        const selectedState = document.getElementById('state-select').value;
-        const selectedCity = document.getElementById('city-select').value;
+  function createOption(value) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = value;
+    return option;
+  }
 
-        console.log('Selected State:', selectedState, 'Selected City:', selectedCity);
+  fetch(chrome.runtime.getURL('New Croma Store List.csv'))
+    .then(response => response.text())
+    .then(text => {
+      storeData = parseCSV(text);
+      const states = [...new Set(storeData.map(item => item['State']))];
 
-        if (!selectedState || !selectedCity) {
-            document.getElementById('result').textContent = 'Please select both state and city.';
-            return;
-        }
+      states.forEach(state => stateSelect.appendChild(createOption(state)));
+    })
+    .catch(error => console.error('Error loading CSV file:', error));
 
-        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-            chrome.tabs.sendMessage(tabs[0].id, {
-                action: 'checkAvailability',
-                state: selectedState,
-                city: selectedCity
-            }, function (response) {
-                if (chrome.runtime.lastError) {
-                    console.error(chrome.runtime.lastError.message);
-                    document.getElementById('result').textContent = 'Failed to check availability.';
-                } else if (response && response.success) {
-                    document.getElementById('result').textContent = 'Check complete!';
-                } else {
-                    document.getElementById('result').textContent = 'Check failed.';
-                }
-            });
-        });
-    });
-});
+  stateSelect.addEventListener('change', function() {
+    citySelect.innerHTML = '';
+    const selectedStates = Array.from(stateSelect.selectedOptions).map(option => option.value);
+    const cities = storeData
+      .filter(item => selectedStates.includes(item['State']))
+      .map(item => item['City']);
 
-function parseCSV(text) {
-    const lines = text.split('\n');
-    const result = [];
-    const headers = lines[0].split(',');
-    for (let i = 1; i < lines.length; i++) {
-        const obj = {};
-        const currentline = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-        for (let j = 0; j < headers.length; j++) {
-            obj[headers[j]] = currentline[j];
-        }
-        result.push(obj);
+    [...new Set(cities)].forEach(city => citySelect.appendChild(createOption(city)));
+  });
+
+  checkAvailabilityButton.addEventListener('click', function() {
+    const selectedCities = Array.from(citySelect.selectedOptions).map(option => option.value);
+    if (selectedCities.length > 0) {
+      chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: 'checkAvailability', cities: selectedCities });
+      });
+    } else {
+      alert('Please select at least one city.');
     }
-    return result;
-}
-
-function populateStateDropdown(data) {
-    const stateSet = new Set(data.map(item => item.State));
-    const stateSelect = document.getElementById('state-select');
-    stateSet.forEach(state => {
-        const option = document.createElement('option');
-        option.value = state;
-        option.textContent = state;
-        stateSelect.appendChild(option);
-    });
-}
-
-function populateCityDropdown(data, state) {
-    const citySelect = document.getElementById('city-select');
-    citySelect.innerHTML = '<option value="">Select a city</option>';
-    const citySet = new Set(data.filter(item => item.State === state).map(item => item.City));
-    citySet.forEach(city => {
-        const option = document.createElement('option');
-        option.value = city;
-        option.textContent = city;
-        citySelect.appendChild(option);
-    });
-}
+  });
+});
