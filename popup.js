@@ -15,6 +15,35 @@ document.addEventListener('DOMContentLoaded', function () {
                 populateCityDropdown(data, selectedState);
             });
     });
+
+    document.getElementById('check-availability').addEventListener('click', function () {
+        const selectedState = document.getElementById('state-select').value;
+        const selectedCity = document.getElementById('city-select').value;
+
+        console.log('Selected State:', selectedState, 'Selected City:', selectedCity);
+
+        if (!selectedState || !selectedCity) {
+            document.getElementById('result').textContent = 'Please select both state and city.';
+            return;
+        }
+
+        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+            chrome.tabs.sendMessage(tabs[0].id, {
+                action: 'checkAvailability',
+                state: selectedState,
+                city: selectedCity
+            }, function (response) {
+                if (chrome.runtime.lastError) {
+                    console.error(chrome.runtime.lastError.message);
+                    document.getElementById('result').textContent = 'Failed to check availability.';
+                } else if (response && response.success) {
+                    document.getElementById('result').textContent = 'Check complete!';
+                } else {
+                    document.getElementById('result').textContent = 'Check failed.';
+                }
+            });
+        });
+    });
 });
 
 function parseCSV(text) {

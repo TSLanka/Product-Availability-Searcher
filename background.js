@@ -1,14 +1,16 @@
+// background.js
 chrome.action.onClicked.addListener((tab) => {
-    chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ['content.js']
-    });
+  console.log("Extension icon clicked");
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    files: ['contentscript.js']
+  });
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "checkAvailability") {
-        // Your background logic to handle availability checking
-        console.log("Background script checking availability...");
-        sendResponse({ success: true });
-    }
+  if (request.action === "checkAvailability") {
+    console.log("Received checkAvailability request");
+    // Your background logic to handle availability checking
+    sendResponse({ success: true });
+  }
 });
